@@ -1,0 +1,59 @@
+利用jTessBoxEditor工具进行tesseract样本训练
+
+1、必备软件 jTessBoxEditor
+前提： 需要安装jdk
+
+2、运行jTessBoxEditor.jar
+E:\Asoftware\AsoftPackage\jTessBoxEditor-2.2.0\jTessBoxEditor\jTessBoxEditor.jar
+
+3、上传样本文件
+Tools --- Merge TIFF
+选择需要训练的样本tiff文件
+（第一次是上传训练的样本文件，第二次是保存为统一的文件名
+如：num.font.exp0.tif，建议保存在：tesseract同级目录
+目录E:\Asoftware\AsoftPackage\jTessBoxEditor-2.2.0\jTessBoxEditor\tesseract-ocr）
+完成后不用关闭
+
+4、cmd中运行：生成box文件
+tesseract num.font.exp0.tif num.font.exp0 batch.nochop makebox
+
+5、jTessBoxEditor中对样本图片进行矫正
+Box Editor --- Open
+左侧是识别的字符，右侧是样本文件图片
+每一页都有！
+
+6、cmd中运行：生成 font_properties 文件
+echo font 0 0 0 0 0 >font_properties
+字体名font，后面5个0，代表粗体，斜体等属性
+
+7、cmd中运行：生成tr训练文件
+tesseract num.font.exp0.tif num.font.exp0 nobatch box.train
+
+8、cmd中运行：生成字符集文件
+unicharset_extractor num.font.exp0.box
+
+9、cmd中运行：生成shape文件
+shapeclustering -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+
+10、cmd中运行：生成聚集字符特征文件
+mftraining -F font_properties -U unicharset -O num.unicharset num.font.exp0.tr
+
+11、cmd中运行：生成字符正常化特征文件
+cntraining num.font.exp0.tr
+
+12、把10,11 生成的文件重命名
+rename normproto num.normproto
+rename inttemp num.inttemp
+rename pffmtable num.pffmtable
+rename unicharset num.unicharset
+rename shapetable num.shapetable
+
+13、cmd中运行：合并训练文件
+combine_tessdata num.
+
+14、将 num.traineddata 文件拷贝到 tesseract-ocr\tessdata 的文件夹中
+
+15、cmd中运行：测试（使用已训练好的语言包文件 -l num ）
+tesseract 13.jpg output -l num
+
+16、打开 output.txt 文件，查看结果
